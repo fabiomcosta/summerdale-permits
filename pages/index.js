@@ -42,7 +42,8 @@ export default function Home() {
 
   const getData = useCallback(async () => {
     try {
-      const apiUrl = `https://data.cityoforlando.net/resource/5pzm-dn5w.json`
+      // docs: https://dev.socrata.com/foundry/data.cityoforlando.net/5pzm-dn5w
+      const apiUrl = `https://data.cityoforlando.net/resource/5pzm-dn5w.json?application_type=Building Permit`
       // const apiUrl = `https://data.cityoforlando.net/resource/5pzm-dn5w.json?$limit=${itemsPerPage}&$offset=${currentPage}`
       const response = await fetch(apiUrl)
       const data = await response.json()
@@ -112,7 +113,8 @@ export default function Home() {
                     <Thead>
                       <Tr>
                         <Th>Permit #</Th>
-                        <Th>Application type</Th>
+                        <Th>Lot #</Th>
+                        <Th>Parcel #</Th>
                         <Th>Address</Th>
                         <Th>Contractor phone</Th>
                       </Tr>
@@ -122,7 +124,11 @@ export default function Home() {
                         return (
                           <Tr key={item.permit_number}>
                             <Td>{item.permit_number}</Td>
-                            <Td>{item.application_type}</Td>
+                            <Td>
+                              {item.parcel_number.slice(-5, -1)}
+                              {/*19374 BANFIELD PL */}
+                            </Td>
+                            <Td>{item.parcel_number}</Td>
                             <Td>{item.permit_address}</Td>
                             <Td>{item.contractor_phone_number}</Td>
                             <Td isNumeric>{item.zip}</Td>
