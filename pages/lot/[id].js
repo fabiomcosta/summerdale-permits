@@ -241,17 +241,25 @@ export default function Lot({ id }) {
 
 export async function getStaticPaths() {
   const apiUrl = `https://data.cityoforlando.net/resource/5pzm-dn5w.json?application_type=Building Permit`;
-  const response = await fetch(apiUrl);
-  const data = await response.json();
-  return {
-    paths: Object.values(
-      data.reduce((acc, permit) => {
-        acc[permit.parcel_number] = { params: { id: permit.parcel_number } };
-        return acc;
-      }, {})
-    ),
-    fallback: false,
-  };
+  try {
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+    return {
+      paths: Object.values(
+        data.reduce((acc, permit) => {
+          acc[permit.parcel_number] = { params: { id: permit.parcel_number } };
+          return acc;
+        }, {})
+      ),
+      fallback: false,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      paths: [],
+      fallback: false,
+    };
+  }
 }
 
 export async function getStaticProps({ params }) {
