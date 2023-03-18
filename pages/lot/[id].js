@@ -1,4 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
+import {
+  useColorBag,
+  SmartColoredBadge,
+} from '../../components/SmartColoredBadge';
 import { useRouter } from 'next/router';
 import {
   Box,
@@ -53,8 +57,8 @@ function useLotData() {
       let data = await response.json();
       data = data.sort(
         (a, b) =>
-          new Date(a.issue_permit_date).getTime() -
-          new Date(b.issue_permit_date).getTime()
+          new Date(a.processed_date).getTime() -
+          new Date(b.processed_date).getTime()
       );
       console.log(data);
       setData(data);
@@ -89,6 +93,7 @@ function OptionalDate({ label, date }) {
 }
 
 function Permits({ data }) {
+  const colorBag = useColorBag();
   const permits = data.map((permit) => {
     return (
       <AccordionItem key={permit.permit_number}>
@@ -97,6 +102,10 @@ function Permits({ data }) {
             <Box as="span" flex="1" textAlign="left">
               {permit.permit_number}
             </Box>
+            <SmartColoredBadge
+              label={permit.application_type}
+              colorBag={colorBag}
+            />
             <AccordionIcon />
           </AccordionButton>
         </h2>
