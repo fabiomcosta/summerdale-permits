@@ -46,15 +46,14 @@ function formatCurrencyAmount(amount) {
   }).format(amount);
 }
 
-function useLotData() {
-  const router = useRouter();
+function useLotData(parcelNumber) {
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const getData = useCallback(async () => {
     try {
       // docs: https://dev.socrata.com/foundry/data.cityoforlando.net/5pzm-dn5w
-      const apiUrl = `https://data.cityoforlando.net/resource/5pzm-dn5w.json?parcel_number=${router.query.id}`;
+      const apiUrl = `https://data.cityoforlando.net/resource/5pzm-dn5w.json?parcel_number=${parcelNumber}`;
       const response = await fetch(apiUrl);
       let data = await response.json();
       data = data.sort(
@@ -69,7 +68,7 @@ function useLotData() {
     } finally {
       setIsLoading(false);
     }
-  }, [setData, router.query.id]);
+  }, [setData, parcelNumber]);
 
   useEffect(() => {
     getData();
@@ -208,9 +207,9 @@ function Permits({ data }) {
   );
 }
 
-export default function Lot() {
+export default function Lot({ id }) {
   const router = useRouter();
-  const [data, isLoading] = useLotData();
+  const [data, isLoading] = useLotData(id);
 
   const lotNumber = parcelNumberToLotNumber(router.query.id);
 
@@ -238,4 +237,23 @@ export default function Lot() {
       </Container>
     </Box>
   );
+}
+
+export async function getStaticPaths() {
+  const apiUrl = `https://data.cityoforlando.net/resource/5pzm-dn5w.json?application_type=Building Permit`;
+  const response = await fetch(apiUrl);
+  const data = await response.json();
+  return {
+    paths: Object.values(
+      data.reduce((acc, permit) => {
+        acc[permit.parcel_number] = { params: { id: permit.parcel_number } };
+        return acc;
+      }, {})
+    ),
+    fallback: false,
+  };
+}
+
+export async function getStaticProps({ params }) {
+  return { props: params };
 }
