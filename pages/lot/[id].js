@@ -20,6 +20,9 @@ function parcelNumberToLotNumber(parcelNumber) {
 }
 
 function formatDateStr(dateStr) {
+  if (dateStr == null) {
+    return null;
+  }
   return new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
     month: 'long',
@@ -28,6 +31,9 @@ function formatDateStr(dateStr) {
 }
 
 function formatCurrencyAmount(amount) {
+  if (amount == null) {
+    return null;
+  }
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
@@ -61,16 +67,20 @@ function useLotData() {
   return [data, isLoading];
 }
 
-function OptionalDate({ label, date }) {
-  if (date == null) {
+function OptionalRow({ label, data }) {
+  if (data == null) {
     return null;
   }
   return (
     <Tr>
       <Th>{label}</Th>
-      <Td>{formatDateStr(date)}</Td>
+      <Td>{data}</Td>
     </Tr>
   );
+}
+
+function OptionalDate({ label, date }) {
+  return <OptionalRow label={label} data={formatDateStr(date)} />;
 }
 
 function Permits({ data }) {
@@ -88,38 +98,35 @@ function Permits({ data }) {
         <AccordionPanel pb={4}>
           <Table variant="simple">
             <Tbody>
-              <Tr>
-                <Th>Application type</Th>
-                <Td>{permit.application_type}</Td>
-              </Tr>
-              <Tr>
-                <Th>Work type</Th>
-                <Td>{permit.worktype}</Td>
-              </Tr>
-              <Tr>
-                <Th>Contractor name</Th>
-                <Td>{permit.contractor_name}</Td>
-              </Tr>
-              <Tr>
-                <Th>Contractor address</Th>
-                <Td>{permit.contractor_address}</Td>
-              </Tr>
-              <Tr>
-                <Th>Contractor phone number</Th>
-                <Td>{permit.contractor_phone_number}</Td>
-              </Tr>
-              <Tr>
-                <Th>Estimated cost</Th>
-                <Td>{formatCurrencyAmount(permit.estimated_cost)}</Td>
-              </Tr>
-              <Tr>
-                <Th>Parcel owner name</Th>
-                <Td>{permit.parcel_owner_name}</Td>
-              </Tr>
-              <Tr>
-                <Th>Property owner name</Th>
-                <Td>{permit.property_owner_name}</Td>
-              </Tr>
+              <OptionalRow
+                label="Application type"
+                data={permit.application_type}
+              />
+              <OptionalRow label="Work type" data={permit.worktype} />
+              <OptionalRow
+                label="Contractor name"
+                data={permit.contractor_name}
+              />
+              <OptionalRow
+                label="Contractor address"
+                data={permit.contractor_address}
+              />
+              <OptionalRow
+                label="Contractor phone number"
+                data={permit.contractor_phone_number}
+              />
+              <OptionalRow
+                label="Estimated cost"
+                data={formatCurrencyAmount(permit.estimated_cost)}
+              />
+              <OptionalRow
+                label="Parcel owner name"
+                data={permit.parcel_owner_name}
+              />
+              <OptionalRow
+                label="Property owner name"
+                data={permit.property_owner_name}
+              />
               <OptionalDate
                 label="Issue permit date"
                 date={permit.issue_permit_date}
