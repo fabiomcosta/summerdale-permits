@@ -1,7 +1,13 @@
 {
-  "name": "lakenona-permits",
+  "name": "summerdale-permits",
+  "description": "Simple website to track home status for the Summerdale community.",
   "version": "0.1.0",
-  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/agnelnieves/summerdale-permits"
+  },
+  "contributors": ["Agnel Nieves @agnelnieves", "Fabio M. Costa @fabiomcosta"],
+  "private": false,
   "engines": {
     "node": ">=16.0.0",
     "yarn": ">=1.22.0",
