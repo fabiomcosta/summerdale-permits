@@ -1,6 +1,6 @@
 // --- React/Nextjs
-import { useEffect, useState, useCallback, useMemo } from 'react'
-import Head from 'next/head'
+import { useEffect, useState, useCallback, useMemo } from 'react';
+import Head from 'next/head';
 
 // TODO: Change to MUI
 
@@ -11,15 +11,12 @@ import {
   Heading,
   Table,
   Thead,
-  Flex, Button,
   Tbody,
   Tfoot,
   CircularProgress,
-  CircularProgressLabel,
   Tr,
   Th,
   Td,
-  TableCaption,
   TableContainer,
   CardBody,
   Card,
@@ -30,34 +27,36 @@ import {
   InputRightElement,
   Text,
   Kbd,
-  Select,
-} from '@chakra-ui/react'
-import { SearchIcon, CheckIcon } from '@chakra-ui/icons';
+} from '@chakra-ui/react';
+import { SearchIcon } from '@chakra-ui/icons';
 
-function ResultsTable({data}) {
-  return <Card variant={'outline'}>
-              <CardBody>
-                <TableContainer>
-                  <Table variant='simple'>
-                    <Thead>
-                      <Tr>
-                        <Th>Lot #</Th>
-                        <Th>Address</Th>
-                        <Th>Status?</Th>
-                      </Tr>
-                    </Thead>
-                    <Tbody>
-                      {data.map((item) => {
-                        return (
-                          <Tr key={item.number}>
-                            <Td>{item.number}</Td>
-                            <Td>{item.address}</Td>
-                            <Td>?</Td>
-                            {/* <Td>{item.parcel_number}</Td> */}
-                            {/* <Td>{item.permit_address}</Td> */}
-                            {/* <Td>{item.contractor_phone_number}</Td> */}
-                            {/* <Td isNumeric>{item.zip}</Td> */}
-                            {/*
+const { hasOwnProperty } = Object.prototype;
+
+function ResultsTable({ data }) {
+  return (
+    <Card variant={'outline'}>
+      <CardBody>
+        <TableContainer>
+          <Table variant="simple">
+            <Thead>
+              <Tr>
+                <Th>Lot #</Th>
+                <Th>Address</Th>
+                {/* <Th>Status?</Th> */}
+              </Tr>
+            </Thead>
+            <Tbody>
+              {data.map((item) => {
+                return (
+                  <Tr key={item.number}>
+                    <Td>{item.number}</Td>
+                    <Td>{item.address}</Td>
+                    {/* <Td>?</Td> */}
+                    {/* <Td>{item.parcel_number}</Td> */}
+                    {/* <Td>{item.permit_address}</Td> */}
+                    {/* <Td>{item.contractor_phone_number}</Td> */}
+                    {/* <Td isNumeric>{item.zip}</Td> */}
+                    {/*
                               application_type: "Building Permit"
                               contractor_addres: "GERALD BOENEMAN (DREAM FINDERS HOMES LLC)"
                               contractor_address: "14701 PHILIPS HWY,JACKSONVILLE, FL 32256"
@@ -77,12 +76,18 @@ function ResultsTable({data}) {
                               under_review_date: "2023-03-07T00:00:00.000"
                               worktype: "New"
                            */}
-                          </Tr>
-                        )
-                      })}
-                    </Tbody>
-                  </Table>
-                  {/* <Flex justifyContent={'space-between'} alignItems={'center'} mt={4}>
+                  </Tr>
+                );
+              })}
+            </Tbody>
+            <Tfoot>
+              <Tr>
+                <Th></Th>
+                <Th></Th>
+              </Tr>
+            </Tfoot>
+          </Table>
+          {/* <Flex justifyContent={'space-between'} alignItems={'center'} mt={4}>
                     <Text>Showing {itemsPerPage} of {data.length} results</Text>
                     <Flex>
                       <Text mr={2}>Items per page</Text>
@@ -105,117 +110,154 @@ function ResultsTable({data}) {
                       Next
                     </Button>
                   </Flex> */}
-                </TableContainer>
-              </CardBody>
-            </Card>
+        </TableContainer>
+      </CardBody>
+    </Card>
+  );
 }
 
-function useCityData() {
-  const [itemsPerPage, setItemsPerPage] = useState(25);
-  const [currentPage, setCurrentPage] = useState(1);
+function useCityData(searchValue) {
   const [data, setData] = useState([]);
-
   const [isLoading, setIsLoading] = useState(true);
 
   const getData = useCallback(async () => {
     try {
       // docs: https://dev.socrata.com/foundry/data.cityoforlando.net/5pzm-dn5w
-      const apiUrl = `https://data.cityoforlando.net/resource/5pzm-dn5w.json?application_type=Building Permit`
+      const apiUrl = `https://data.cityoforlando.net/resource/5pzm-dn5w.json?application_type=Building Permit`;
       // const apiUrl =`https://data.cityoforlando.net/resource/5pzm-dn5w.json?parcel_number=312431779301390`;
       // const apiUrl = `https://data.cityoforlando.net/resource/5pzm-dn5w.json?$limit=${itemsPerPage}&$offset=${currentPage}`
-      const response = await fetch(apiUrl)
-      const data = await response.json()
-      console.log(data)
-      setData(data)
+      const response = await fetch(apiUrl);
+      const data = await response.json();
+      console.log(data);
+      setData(data);
     } catch (error) {
-      console.log(error)
+      console.log(error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [setData])
-
-  const lotData = useMemo(() => {
-    const lots = data.reduce((acc, permit) => {
-      const lotNumber = Number(permit.parcel_number.slice(-5, -1))
-      if (acc.hasOwnProperty(lotNumber)){
-        acc[lotNumber].permits.push(permit)
-      } else {
-        acc[lotNumber] = {
-          number: lotNumber,
-          address: permit.permit_address,
-          // we don't actually need this
-          permits: [permit]
-        }
-      }
-      return acc
-    }, {});
-    return Object.values(lots);
-  }, [data])
-
-  // const paginate = (direction) => {
-  //   if (direction === 'next') {
-  //     setCurrentPage(currentPage + itemsPerPage)
-  //   } else {
-  //     setCurrentPage(currentPage - itemsPerPage)
-  //   }
-  //   getData();
-  // }
+  }, [setData]);
 
   useEffect(() => {
     getData();
-  }, [getData])
+  }, [getData]);
 
-  return [lotData, isLoading];
+  const lotData = useMemo(() => {
+    const lots = data.reduce((acc, permit) => {
+      const lotNumber = Number(permit.parcel_number.slice(-5, -1));
+      if (hasOwnProperty.call(acc, lotNumber)) {
+        acc[lotNumber].permits.push(permit);
+      } else {
+        const address = permit.permit_address;
+        acc[lotNumber] = {
+          // Haha... this makes the search logic easier
+          __searchIndex: `${lotNumber} ${address}`.toLowerCase(),
+          number: lotNumber,
+          address,
+          // we don't actually need this
+          permits: [permit],
+        };
+      }
+      return acc;
+    }, {});
+    return Object.values(lots);
+  }, [data]);
+
+  const searchTokens = searchValue.toLowerCase().split(' ');
+  const filteredLotData = lotData.filter((lot) => {
+    return searchTokens.some((token) => lot.__searchIndex.includes(token));
+  });
+
+  return [filteredLotData, isLoading];
 }
 
 export default function Home() {
-  const [data, isLoading] = useCityData();
+  const [searchValue, setSearchValue] = useState('');
+  const [data, isLoading] = useCityData(searchValue);
   return (
     <>
       <Head>
         <title>Summerdale Park building status</title>
-        <meta name="description" content="A status page to help Summerdale Park home owners stay up to date with their homes." />
+        <meta
+          name="description"
+          content="A status page to help Summerdale Park home owners stay up to date with their homes."
+        />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Box as='main' h={'full'} w={'full'}>
+      <Box as="main" h={'full'} w={'full'}>
         {/* Show a circular loader from chakra ui */}
-        <Box as='header' w={'full'} p={4} borderBottomWidth={1} borderBottomColor={'gray.200'} bg={'gray.900'} mb={12}>
+        <Box
+          as="header"
+          w={'full'}
+          p={4}
+          borderBottomWidth={1}
+          borderBottomColor={'gray.200'}
+          bg={'gray.900'}
+          mb={12}
+        >
           <Box py={'16'}>
             <Heading color={'white'} textAlign={'center'}>
               Explore Status updates for Summerdale community
             </Heading>
             <Text size={'xl'} color={'gray.300'} textAlign={'center'}>
-              A status page to help Summerdale Park home owners stay up to date with their homes.
+              A status page to help Summerdale Park home owners stay up to date
+              with their homes.
             </Text>
           </Box>
-          <Stack spacing={4} mb={-8} maxW={672} marginInline="auto" alignItems={'center'}>
-            <InputGroup >
+          <Stack
+            spacing={4}
+            mb={-8}
+            maxW={672}
+            marginInline="auto"
+            alignItems="center"
+          >
+            <InputGroup>
               <InputLeftElement
                 flex={1}
-                pointerEvents='none'
+                pointerEvents="none"
+                height="100%"
+                marginStart="1"
               >
-                <SearchIcon color="gray.300" fontSize={'xl'} />
+                <SearchIcon color="gray.300" />
               </InputLeftElement>
-              <Input size="lg" bg={'white'} type='tel' placeholder='Search for a lot number' />
-              <InputRightElement width='4.5rem'>
+              <Input
+                value={searchValue}
+                onChange={(event) => {
+                  setSearchValue(event.target.value);
+                }}
+                size="lg"
+                bg="white"
+                type="tel"
+                placeholder="Search for a lot number"
+              />
+              <InputRightElement width="4.5rem" height="100%" paddingEnd="2">
                 <Kbd>cmd</Kbd>
                 <Kbd>k</Kbd>
               </InputRightElement>
             </InputGroup>
           </Stack>
         </Box>
-        <Box as='section' w={'full'} p={4}>
-          <Container maxW='container.xl'>
-            {isLoading && data.length === 0 ? <CircularProgress isIndeterminate /> : <ResultsTable data={data} /> }
+        <Box as="section" w={'full'} p={4}>
+          <Container maxW="container.xl">
+            {isLoading && data.length === 0 ? (
+              <CircularProgress isIndeterminate />
+            ) : (
+              <ResultsTable data={data} />
+            )}
           </Container>
         </Box>
       </Box>
-      <Box as='footer' w={'full'} p={6} borderTopWidth={1} borderTopColor={'gray.200'} bg={'gray.100'} textAlign="center">
-        <Text>
-          Created by Agnel Nieves and Bruno Albuquerque
-        </Text>
+      <Box
+        as="footer"
+        w={'full'}
+        p={6}
+        borderTopWidth={1}
+        borderTopColor={'gray.200'}
+        bg={'gray.100'}
+        textAlign="center"
+      >
+        <Text>Created by Agnel Nieves and Bruno Albuquerque</Text>
       </Box>
     </>
-  )
+  );
 }
