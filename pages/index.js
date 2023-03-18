@@ -1,5 +1,5 @@
 // --- React/Nextjs
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import Head from 'next/head'
 
 // TODO: Change to MUI
@@ -34,104 +34,29 @@ import {
 } from '@chakra-ui/react'
 import { SearchIcon, CheckIcon } from '@chakra-ui/icons';
 
-export default function Home() {
-  const [data, setData] = useState([]);
-  const [itemsPerPage, setItemsPerPage] = useState(25);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const getData = useCallback(async () => {
-    try {
-      // docs: https://dev.socrata.com/foundry/data.cityoforlando.net/5pzm-dn5w
-      const apiUrl = `https://data.cityoforlando.net/resource/5pzm-dn5w.json?application_type=Building Permit`
-      // const apiUrl = `https://data.cityoforlando.net/resource/5pzm-dn5w.json?$limit=${itemsPerPage}&$offset=${currentPage}`
-      const response = await fetch(apiUrl)
-      const data = await response.json()
-      console.log(data)
-      setData(data)
-    } catch (error) {
-      console.log(error)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [setData, itemsPerPage, currentPage])
-
-  const paginate = (direction) => {
-    if (direction === 'next') {
-      setCurrentPage(currentPage + itemsPerPage)
-    } else {
-      setCurrentPage(currentPage - itemsPerPage)
-    }
-    getData();
-  }
-
-  useEffect(() => {
-    getData();
-  }, [getData])
-
-  return (
-    <>
-      <Head>
-        <title>Summerdale Park building status</title>
-        <meta name="description" content="A status page to help Summerdale Park home owners stay up to date with their homes." />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-      <Box as='main' h={'full'} w={'full'}>
-        {/* Show a circular loader from chakra ui */}
-        <Box as='header' w={'full'} p={4} borderBottomWidth={1} borderBottomColor={'gray.200'} bg={'gray.900'} mb={12}>
-          <Box py={'16'}>
-            <Heading color={'white'} textAlign={'center'}>
-              Explore Status updates for Summerdale community
-            </Heading>
-            <Text size={'xl'} color={'gray.300'} textAlign={'center'}>
-              A status page to help Summerdale Park home owners stay up to date with their homes.
-            </Text>
-          </Box>
-          <Stack spacing={4} mb={-8} maxW={672} marginInline="auto" alignItems={'center'}>
-            <InputGroup >
-              <InputLeftElement
-                flex={1}
-                pointerEvents='none'
-              >
-                <SearchIcon color="gray.300" fontSize={'xl'} />
-              </InputLeftElement>
-              <Input size="lg" bg={'white'} type='tel' placeholder='Search for a lot number' />
-              <InputRightElement width='4.5rem'>
-                <Kbd>cmd</Kbd>
-                <Kbd>k</Kbd>
-              </InputRightElement>
-            </InputGroup>
-          </Stack>
-        </Box>
-        <Box as='section' w={'full'} p={4}>
-          <Container maxW='container.xl'>
-            {isLoading && data.length === 0 ? <CircularProgress isIndeterminate /> : <Card variant={'outline'}>
+function ResultsTable({data}) {
+  return <Card variant={'outline'}>
               <CardBody>
                 <TableContainer>
                   <Table variant='simple'>
                     <Thead>
                       <Tr>
-                        <Th>Permit #</Th>
                         <Th>Lot #</Th>
-                        <Th>Parcel #</Th>
                         <Th>Address</Th>
-                        <Th>Contractor phone</Th>
+                        <Th>Status?</Th>
                       </Tr>
                     </Thead>
                     <Tbody>
                       {data.map((item) => {
                         return (
-                          <Tr key={item.permit_number}>
-                            <Td>{item.permit_number}</Td>
-                            <Td>
-                              {item.parcel_number.slice(-5, -1)}
-                              {/*19374 BANFIELD PL */}
-                            </Td>
-                            <Td>{item.parcel_number}</Td>
-                            <Td>{item.permit_address}</Td>
-                            <Td>{item.contractor_phone_number}</Td>
-                            <Td isNumeric>{item.zip}</Td>
+                          <Tr key={item.number}>
+                            <Td>{item.number}</Td>
+                            <Td>{item.address}</Td>
+                            <Td>?</Td>
+                            {/* <Td>{item.parcel_number}</Td> */}
+                            {/* <Td>{item.permit_address}</Td> */}
+                            {/* <Td>{item.contractor_phone_number}</Td> */}
+                            {/* <Td isNumeric>{item.zip}</Td> */}
                             {/*
                               application_type: "Building Permit"
                               contractor_addres: "GERALD BOENEMAN (DREAM FINDERS HOMES LLC)"
@@ -182,7 +107,107 @@ export default function Home() {
                   </Flex> */}
                 </TableContainer>
               </CardBody>
-            </Card>}
+            </Card>
+}
+
+function useCityData() {
+  const [itemsPerPage, setItemsPerPage] = useState(25);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [data, setData] = useState([]);
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  const getData = useCallback(async () => {
+    try {
+      // docs: https://dev.socrata.com/foundry/data.cityoforlando.net/5pzm-dn5w
+      const apiUrl = `https://data.cityoforlando.net/resource/5pzm-dn5w.json?application_type=Building Permit`
+      // const apiUrl =`https://data.cityoforlando.net/resource/5pzm-dn5w.json?parcel_number=312431779301390`;
+      // const apiUrl = `https://data.cityoforlando.net/resource/5pzm-dn5w.json?$limit=${itemsPerPage}&$offset=${currentPage}`
+      const response = await fetch(apiUrl)
+      const data = await response.json()
+      console.log(data)
+      setData(data)
+    } catch (error) {
+      console.log(error)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [setData])
+
+  const lotData = useMemo(() => {
+    const lots = data.reduce((acc, permit) => {
+      const lotNumber = Number(permit.parcel_number.slice(-5, -1))
+      if (acc.hasOwnProperty(lotNumber)){
+        acc[lotNumber].permits.push(permit)
+      } else {
+        acc[lotNumber] = {
+          number: lotNumber,
+          address: permit.permit_address,
+          // we don't actually need this
+          permits: [permit]
+        }
+      }
+      return acc
+    }, {});
+    return Object.values(lots);
+  }, [data])
+
+  // const paginate = (direction) => {
+  //   if (direction === 'next') {
+  //     setCurrentPage(currentPage + itemsPerPage)
+  //   } else {
+  //     setCurrentPage(currentPage - itemsPerPage)
+  //   }
+  //   getData();
+  // }
+
+  useEffect(() => {
+    getData();
+  }, [getData])
+
+  return [lotData, isLoading];
+}
+
+export default function Home() {
+  const [data, isLoading] = useCityData();
+  return (
+    <>
+      <Head>
+        <title>Summerdale Park building status</title>
+        <meta name="description" content="A status page to help Summerdale Park home owners stay up to date with their homes." />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+      <Box as='main' h={'full'} w={'full'}>
+        {/* Show a circular loader from chakra ui */}
+        <Box as='header' w={'full'} p={4} borderBottomWidth={1} borderBottomColor={'gray.200'} bg={'gray.900'} mb={12}>
+          <Box py={'16'}>
+            <Heading color={'white'} textAlign={'center'}>
+              Explore Status updates for Summerdale community
+            </Heading>
+            <Text size={'xl'} color={'gray.300'} textAlign={'center'}>
+              A status page to help Summerdale Park home owners stay up to date with their homes.
+            </Text>
+          </Box>
+          <Stack spacing={4} mb={-8} maxW={672} marginInline="auto" alignItems={'center'}>
+            <InputGroup >
+              <InputLeftElement
+                flex={1}
+                pointerEvents='none'
+              >
+                <SearchIcon color="gray.300" fontSize={'xl'} />
+              </InputLeftElement>
+              <Input size="lg" bg={'white'} type='tel' placeholder='Search for a lot number' />
+              <InputRightElement width='4.5rem'>
+                <Kbd>cmd</Kbd>
+                <Kbd>k</Kbd>
+              </InputRightElement>
+            </InputGroup>
+          </Stack>
+        </Box>
+        <Box as='section' w={'full'} p={4}>
+          <Container maxW='container.xl'>
+            {isLoading && data.length === 0 ? <CircularProgress isIndeterminate /> : <ResultsTable data={data} /> }
           </Container>
         </Box>
       </Box>
