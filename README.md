@@ -1,4 +1,3 @@
-
 Simple website to help track updates on the homes of Summerdale Park.
 
 ## Getting Started

@@ -6,7 +6,10 @@
     "type": "git",
     "url": "https://github.com/agnelnieves/summerdale-permits"
   },
-  "contributors": ["Agnel Nieves @agnelnieves", "Fabio M. Costa @fabiomcosta"],
+  "contributors": [
+    "Agnel Nieves @agnelnieves",
+    "Fabio M. Costa @fabiomcosta"
+  ],
   "private": false,
   "engines": {
     "node": ">=16.0.0",
@@ -19,7 +22,8 @@
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --write .",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "commit": "node node_modules/cz-customizable/standalone.js"
   },
   "dependencies": {
     "@chakra-ui/icons": "^2.0.17",
@@ -38,7 +42,13 @@
     "typescript": "4.9.5"
   },
   "devDependencies": {
+    "cz-customizable": "^7.0.0",
     "husky": "^8.0.0",
     "prettier": "^2.8.4"
+  },
+  "config": {
+    "cz-customizable": {
+      "config": ".cz-config.js"
+    }
   }
 }
