@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "\n============================ \n ⚙️ Running pre-commit hooks \n============================ \n"
+echo "--- Linting code and checking for errors ---\n"
+
+yarn format && yarn lint
+
+echo "\n------------------------------------------------------------------------------------------- \n"
+echo "✨ Done linting code. Check for any errors. Warnings won't prevent you from pushing.\n"
+echo "------------------------------------------------------------------------------------------- \n"
