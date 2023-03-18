@@ -50,7 +50,12 @@ function useLotData() {
       // docs: https://dev.socrata.com/foundry/data.cityoforlando.net/5pzm-dn5w
       const apiUrl = `https://data.cityoforlando.net/resource/5pzm-dn5w.json?parcel_number=${router.query.id}`;
       const response = await fetch(apiUrl);
-      const data = await response.json();
+      let data = await response.json();
+      data = data.sort(
+        (a, b) =>
+          new Date(a.issue_permit_date).getTime() -
+          new Date(b.issue_permit_date).getTime()
+      );
       console.log(data);
       setData(data);
     } catch (error) {
@@ -127,14 +132,7 @@ function Permits({ data }) {
                 label="Property owner name"
                 data={permit.property_owner_name}
               />
-              <OptionalDate
-                label="Issue permit date"
-                date={permit.issue_permit_date}
-              />
-              <OptionalDate
-                label="Prescreen completed date"
-                date={permit.prescreen_completed_date}
-              />
+
               <OptionalDate
                 label="Processed date"
                 date={permit.processed_date}
@@ -148,23 +146,32 @@ function Permits({ data }) {
                 date={permit.review_started_including}
               />
               <OptionalDate
+                label="Prescreen completed date"
+                date={permit.prescreen_completed_date}
+              />
+              <OptionalDate
                 label="Review started date excluding"
                 date={permit.review_started_date_excluding}
+              />
+              <OptionalDate
+                label="Collect permit fees date"
+                date={permit.collect_permit_fees_date}
               />
               <OptionalDate
                 label="Pending issuance date"
                 date={permit.pending_issuance_date}
               />
               <OptionalDate
-                label="Collect permit fees date"
-                date={permit.collect_permit_fees_date}
+                label="Issue permit date"
+                date={permit.issue_permit_date}
               />
-              <OptionalDate label="Final date" date={permit.final_date} />
-              <OptionalDate label="COO date" date={permit.coo_date} />
               <OptionalDate
                 label="PDOX batch date"
                 date={permit.pdoxbatch_date}
               />
+              <OptionalDate label="Final date" date={permit.final_date} />
+              <OptionalDate label="COO date" date={permit.coo_date} />
+
               <Tr>
                 <Th>Debug</Th>
                 <Td>{JSON.stringify(permit)}</Td>
