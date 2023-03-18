@@ -6,6 +6,8 @@ import {
 import { useRouter } from 'next/router';
 import {
   Box,
+  Card,
+  Container,
   CircularProgress,
   Accordion,
   AccordionItem,
@@ -94,9 +96,12 @@ function OptionalDate({ label, date }) {
 
 function Permits({ data }) {
   const colorBag = useColorBag();
-  const permits = data.map((permit) => {
+  const permits = data.map((permit, index) => {
     return (
-      <AccordionItem key={permit.permit_number}>
+      <AccordionItem
+        key={permit.permit_number}
+        borderTopWidth={index === 0 ? 0 : void 0}
+      >
         <h2>
           <AccordionButton>
             <Box as="span" flex="1" textAlign="left">
@@ -196,7 +201,9 @@ function Permits({ data }) {
       <div>
         <strong>Permits:</strong>
       </div>
-      <Accordion allowMultiple>{permits}</Accordion>
+      <Card variant={'outline'}>
+        <Accordion allowMultiple>{permits}</Accordion>
+      </Card>
     </>
   );
 }
@@ -217,16 +224,18 @@ export default function Lot() {
   )?.permit_address;
 
   return (
-    <div>
-      <div>
-        <strong>LOT #:</strong> {lotNumber}
-      </div>
-      {address != null ? (
+    <Box as="section" w={'full'} p={4}>
+      <Container maxW="container.xl">
         <div>
-          <strong>Address:</strong> {address}
+          <strong>LOT #:</strong> {lotNumber}
         </div>
-      ) : null}
-      <Permits data={data} />
-    </div>
+        {address != null ? (
+          <div>
+            <strong>Address:</strong> {address}
+          </div>
+        ) : null}
+        <Permits data={data} />
+      </Container>
+    </Box>
   );
 }
