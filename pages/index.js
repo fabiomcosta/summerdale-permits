@@ -12,6 +12,7 @@ import {
   Table,
   Thead,
   Tbody,
+  Tfoot,
   CircularProgress,
   Tr,
   Th,
@@ -41,7 +42,7 @@ function ResultsTable({ data }) {
               <Tr>
                 <Th>Lot #</Th>
                 <Th>Address</Th>
-                <Th>Status?</Th>
+                {/* <Th>Status?</Th> */}
               </Tr>
             </Thead>
             <Tbody>
@@ -50,7 +51,7 @@ function ResultsTable({ data }) {
                   <Tr key={item.number}>
                     <Td>{item.number}</Td>
                     <Td>{item.address}</Td>
-                    <Td>?</Td>
+                    {/* <Td>?</Td> */}
                     {/* <Td>{item.parcel_number}</Td> */}
                     {/* <Td>{item.permit_address}</Td> */}
                     {/* <Td>{item.contractor_phone_number}</Td> */}
@@ -79,6 +80,12 @@ function ResultsTable({ data }) {
                 );
               })}
             </Tbody>
+            <Tfoot>
+              <Tr>
+                <Th></Th>
+                <Th></Th>
+              </Tr>
+            </Tfoot>
           </Table>
           {/* <Flex justifyContent={'space-between'} alignItems={'center'} mt={4}>
                     <Text>Showing {itemsPerPage} of {data.length} results</Text>
@@ -109,7 +116,7 @@ function ResultsTable({ data }) {
   );
 }
 
-function useCityData() {
+function useCityData(searchValue) {
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -130,15 +137,22 @@ function useCityData() {
     }
   }, [setData]);
 
+  useEffect(() => {
+    getData();
+  }, [getData]);
+
   const lotData = useMemo(() => {
     const lots = data.reduce((acc, permit) => {
       const lotNumber = Number(permit.parcel_number.slice(-5, -1));
       if (hasOwnProperty.call(acc, lotNumber)) {
         acc[lotNumber].permits.push(permit);
       } else {
+        const address = permit.permit_address;
         acc[lotNumber] = {
+          // Haha... this makes the search logic easier
+          __searchIndex: `${lotNumber} ${address}`.toLowerCase(),
           number: lotNumber,
-          address: permit.permit_address,
+          address,
           // we don't actually need this
           permits: [permit],
         };
@@ -148,15 +162,17 @@ function useCityData() {
     return Object.values(lots);
   }, [data]);
 
-  useEffect(() => {
-    getData();
-  }, [getData]);
+  const searchTokens = searchValue.toLowerCase().split(' ');
+  const filteredLotData = lotData.filter((lot) => {
+    return searchTokens.some((token) => lot.__searchIndex.includes(token));
+  });
 
-  return [lotData, isLoading];
+  return [filteredLotData, isLoading];
 }
 
 export default function Home() {
-  const [data, isLoading] = useCityData();
+  const [searchValue, setSearchValue] = useState('');
+  const [data, isLoading] = useCityData(searchValue);
   return (
     <>
       <Head>
@@ -205,6 +221,10 @@ export default function Home() {
                 <SearchIcon color="gray.300" />
               </InputLeftElement>
               <Input
+                value={searchValue}
+                onChange={(event) => {
+                  setSearchValue(event.target.value);
+                }}
                 size="lg"
                 bg="white"
                 type="tel"
