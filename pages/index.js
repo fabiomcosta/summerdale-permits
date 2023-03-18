@@ -193,19 +193,24 @@ export default function Home() {
             mb={-8}
             maxW={672}
             marginInline="auto"
-            alignItems={'center'}
+            alignItems="center"
           >
             <InputGroup>
-              <InputLeftElement flex={1} pointerEvents="none">
-                <SearchIcon color="gray.300" fontSize={'xl'} />
+              <InputLeftElement
+                flex={1}
+                pointerEvents="none"
+                height="100%"
+                marginStart="1"
+              >
+                <SearchIcon color="gray.300" />
               </InputLeftElement>
               <Input
                 size="lg"
-                bg={'white'}
+                bg="white"
                 type="tel"
                 placeholder="Search for a lot number"
               />
-              <InputRightElement width="4.5rem">
+              <InputRightElement width="4.5rem" height="100%" paddingEnd="2">
                 <Kbd>cmd</Kbd>
                 <Kbd>k</Kbd>
               </InputRightElement>
