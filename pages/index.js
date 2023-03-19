@@ -1,12 +1,14 @@
 // --- React/Nextjs
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import Head from 'next/head';
+import Link from 'next/link';
 
 // TODO: Change to MUI
 
 // --- Libs
 import {
   Box,
+  Button,
   Container,
   Heading,
   Table,
@@ -32,6 +34,10 @@ import { SearchIcon } from '@chakra-ui/icons';
 
 const { hasOwnProperty } = Object.prototype;
 
+function parcelNumberToLotNumber(parcelNumber) {
+  return Number(parcelNumber.slice(-5, -1));
+}
+
 function ResultsTable({ data }) {
   return (
     <Card variant={'outline'}>
@@ -43,73 +49,38 @@ function ResultsTable({ data }) {
                 <Th>Lot #</Th>
                 <Th>Address</Th>
                 {/* <Th>Status?</Th> */}
+                <Th>Actions</Th>
               </Tr>
             </Thead>
+            <Tfoot>
+              <Tr>
+                <Th>Lot #</Th>
+                <Th>Address</Th>
+                {/* <Th>Status?</Th> */}
+                <Th>Actions</Th>
+              </Tr>
+            </Tfoot>
             <Tbody>
               {data.map((item) => {
                 return (
                   <Tr key={item.number}>
                     <Td>{item.number}</Td>
                     <Td>{item.address}</Td>
+                    <Td>
+                      <Link href={`/lot/${item.id}`}>
+                        <Button colorScheme="blue">Details</Button>
+                      </Link>
+                    </Td>
                     {/* <Td>?</Td> */}
                     {/* <Td>{item.parcel_number}</Td> */}
                     {/* <Td>{item.permit_address}</Td> */}
                     {/* <Td>{item.contractor_phone_number}</Td> */}
                     {/* <Td isNumeric>{item.zip}</Td> */}
-                    {/*
-                              application_type: "Building Permit"
-                              contractor_addres: "GERALD BOENEMAN (DREAM FINDERS HOMES LLC)"
-                              contractor_address: "14701 PHILIPS HWY,JACKSONVILLE, FL 32256"
-                              contractor_name: "DREAM FINDERS HOMES LLC"
-                              contractor_phone_number: "(407)757-0206"
-                              estimated_cost: "277800"
-                              of_cycles: "1"
-                              of_pdoxwkflw: "0"
-                              parcel_number: "312431779300010"
-                              parcel_owner_name: " DREAM FINDERS HOMES LLC"
-                              permit_address: "18303 MOWRY CT"
-                              permit_number: "BLD2023-12771"
-                              plan_review_type: "Residential 1/2"
-                              prescreen_completed_date: "2023-03-07T00:00:00.000"
-                              processed_date: "2023-03-07T00:00:00.000"
-                              property_owner_name: " TDCP LLC"
-                              under_review_date: "2023-03-07T00:00:00.000"
-                              worktype: "New"
-                           */}
                   </Tr>
                 );
               })}
             </Tbody>
-            <Tfoot>
-              <Tr>
-                <Th></Th>
-                <Th></Th>
-              </Tr>
-            </Tfoot>
           </Table>
-          {/* <Flex justifyContent={'space-between'} alignItems={'center'} mt={4}>
-                    <Text>Showing {itemsPerPage} of {data.length} results</Text>
-                    <Flex>
-                      <Text mr={2}>Items per page</Text>
-                      <Select size="sm" value={itemsPerPage} onChange={(e) => setItemsPerPage(e.target.value)}>
-                        <option value={10}>10</option>
-                        <option value={25}>25</option>
-                        <option value={50}>50</option>
-                        <option value={100}>100</option>
-                      </Select>
-                    </Flex>
-
-                    <Button
-                      onClick={() => paginate('previous')}
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      onClick={() => paginate('next')}
-                    >
-                      Next
-                    </Button>
-                  </Flex> */}
         </TableContainer>
       </CardBody>
     </Card>
@@ -124,8 +95,6 @@ function useCityData(searchValue) {
     try {
       // docs: https://dev.socrata.com/foundry/data.cityoforlando.net/5pzm-dn5w
       const apiUrl = `https://data.cityoforlando.net/resource/5pzm-dn5w.json?application_type=Building Permit`;
-      // const apiUrl =`https://data.cityoforlando.net/resource/5pzm-dn5w.json?parcel_number=312431779301390`;
-      // const apiUrl = `https://data.cityoforlando.net/resource/5pzm-dn5w.json?$limit=${itemsPerPage}&$offset=${currentPage}`
       const response = await fetch(apiUrl);
       const data = await response.json();
       console.log(data);
@@ -143,7 +112,7 @@ function useCityData(searchValue) {
 
   const lotData = useMemo(() => {
     const lots = data.reduce((acc, permit) => {
-      const lotNumber = Number(permit.parcel_number.slice(-5, -1));
+      const lotNumber = parcelNumberToLotNumber(permit.parcel_number);
       if (hasOwnProperty.call(acc, lotNumber)) {
         acc[lotNumber].permits.push(permit);
       } else {
@@ -151,6 +120,7 @@ function useCityData(searchValue) {
         acc[lotNumber] = {
           // Haha... this makes the search logic easier
           __searchIndex: `${lotNumber} ${address}`.toLowerCase(),
+          id: permit.parcel_number,
           number: lotNumber,
           address,
           // we don't actually need this
