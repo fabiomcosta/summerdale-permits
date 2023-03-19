@@ -31,6 +31,10 @@ import {
   Kbd,
 } from '@chakra-ui/react';
 import { SearchIcon } from '@chakra-ui/icons';
+import {
+  useColorBag,
+  SmartColoredBadge,
+} from '../components/SmartColoredBadge';
 
 const { hasOwnProperty } = Object.prototype;
 
@@ -38,28 +42,57 @@ function parcelNumberToLotNumber(parcelNumber) {
   return Number(parcelNumber.slice(-5, -1));
 }
 
+// function isDateStr(value) {
+//   if (typeof value != 'string') {
+//     return false;
+//   }
+//   return (
+//     Number.isFinite(new Date(value).getTime()) &&
+//     /\d+-\d+-\d+T\d+:\d+:[\d.]+/.test(value)
+//   );
+// }
+
+// function getLatestDateField(permit) {
+//   let dateFields = Object.entries(permit).filter(([, value]) => {
+//     return isDateStr(value);
+//   });
+//   dateFields = dateFields.sort(([, a], [, b]) => {
+//     return new Date(b).getTime() - new Date(a).getTime();
+//   });
+//   return dateFields[0];
+// }
+
+function getLotStatus(buildingPermit) {
+  // when there are more then one Building Permit it's still confusing which
+  // one is the one that we should be using, so we'll avoid classifying them.
+  if (buildingPermit.permits.length === 1) {
+    const permit = buildingPermit.permits[0];
+    if (permit.coo_date != null) {
+      return 'Ready to move';
+    }
+    // const [name] = getLatestDateField(permit);
+    // return name;
+  }
+  return 'Other';
+}
+
 function ResultsTable({ data }) {
+  const colorBag = useColorBag();
+  const headerElements = (
+    <Tr>
+      <Th>Lot #</Th>
+      <Th>Address</Th>
+      <Th>Status</Th>
+      <Th>Actions</Th>
+    </Tr>
+  );
   return (
     <Card variant={'outline'}>
       <CardBody>
         <TableContainer>
           <Table variant="simple">
-            <Thead>
-              <Tr>
-                <Th>Lot #</Th>
-                <Th>Address</Th>
-                {/* <Th>Status?</Th> */}
-                <Th>Actions</Th>
-              </Tr>
-            </Thead>
-            <Tfoot>
-              <Tr>
-                <Th>Lot #</Th>
-                <Th>Address</Th>
-                {/* <Th>Status?</Th> */}
-                <Th>Actions</Th>
-              </Tr>
-            </Tfoot>
+            <Thead>{headerElements}</Thead>
+            <Tfoot>{headerElements}</Tfoot>
             <Tbody>
               {data.map((item) => {
                 return (
@@ -67,15 +100,16 @@ function ResultsTable({ data }) {
                     <Td>{item.number}</Td>
                     <Td>{item.address}</Td>
                     <Td>
+                      <SmartColoredBadge
+                        label={getLotStatus(item)}
+                        colorBag={colorBag}
+                      />
+                    </Td>
+                    <Td>
                       <Link href={`/lot/${item.id}`}>
                         <Button colorScheme="blue">Details</Button>
                       </Link>
                     </Td>
-                    {/* <Td>?</Td> */}
-                    {/* <Td>{item.parcel_number}</Td> */}
-                    {/* <Td>{item.permit_address}</Td> */}
-                    {/* <Td>{item.contractor_phone_number}</Td> */}
-                    {/* <Td isNumeric>{item.zip}</Td> */}
                   </Tr>
                 );
               })}
@@ -94,7 +128,7 @@ function useCityData(searchValue) {
   const getData = useCallback(async () => {
     try {
       // docs: https://dev.socrata.com/foundry/data.cityoforlando.net/5pzm-dn5w
-      const apiUrl = `https://data.cityoforlando.net/resource/5pzm-dn5w.json?application_type=Building Permit`;
+      const apiUrl = `https://data.cityoforlando.net/resource/5pzm-dn5w.json?application_type=Building Permit&worktype=New`;
       const response = await fetch(apiUrl);
       const data = await response.json();
       console.log(data);
@@ -131,6 +165,8 @@ function useCityData(searchValue) {
     }, {});
     return Object.values(lots);
   }, [data]);
+
+  console.log(lotData);
 
   const searchTokens = searchValue.toLowerCase().split(' ');
   const filteredLotData = lotData.filter((lot) => {

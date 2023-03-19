@@ -151,16 +151,17 @@ function Permits({ data }) {
                 date={permit.processed_date}
               />
               <OptionalDate
+                label="Prescreen completed date"
+                date={permit.prescreen_completed_date}
+              />
+              <OptionalDate
                 label="Under review date"
                 date={permit.under_review_date}
               />
+
               <OptionalDate
-                label="Review started including"
+                label="Review started date including"
                 date={permit.review_started_including}
-              />
-              <OptionalDate
-                label="Prescreen completed date"
-                date={permit.prescreen_completed_date}
               />
               <OptionalDate
                 label="Review started date excluding"
@@ -174,6 +175,7 @@ function Permits({ data }) {
                 label="Pending issuance date"
                 date={permit.pending_issuance_date}
               />
+
               <OptionalDate
                 label="Issue permit date"
                 date={permit.issue_permit_date}
@@ -182,6 +184,7 @@ function Permits({ data }) {
                 label="PDOX batch date"
                 date={permit.pdoxbatch_date}
               />
+
               <OptionalDate label="Final date" date={permit.final_date} />
               <OptionalDate label="COO date" date={permit.coo_date} />
 
@@ -240,7 +243,7 @@ export default function Lot({ id }) {
 }
 
 export async function getStaticPaths() {
-  const apiUrl = `https://data.cityoforlando.net/resource/5pzm-dn5w.json?application_type=Building Permit`;
+  const apiUrl = `https://data.cityoforlando.net/resource/5pzm-dn5w.json?application_type=Building Permit&worktype=New`;
   try {
     const response = await fetch(apiUrl);
     const data = await response.json();
