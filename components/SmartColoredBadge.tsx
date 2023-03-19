@@ -5,12 +5,19 @@ const { hasOwnProperty } = Object.prototype;
 
 const availableColors = [
   'red',
-  'blue',
-  'purple',
-  'green',
-  'teal',
   'orange',
   'yellow',
+  'green',
+  'teal',
+  'blue',
+  'cyan',
+  'purple',
+  'pink',
+  'linkedin',
+  'facebook',
+  'whatsapp',
+  'twitter',
+  'telegram',
 ];
 
 type ColorBag = {

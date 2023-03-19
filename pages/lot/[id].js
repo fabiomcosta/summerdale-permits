@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, Fragment } from 'react';
 import {
   useColorBag,
   SmartColoredBadge,
@@ -6,9 +6,11 @@ import {
 import { useRouter } from 'next/router';
 import {
   Box,
+  Badge,
   Card,
   Container,
   CircularProgress,
+  Flex,
   Accordion,
   AccordionItem,
   AccordionButton,
@@ -19,7 +21,17 @@ import {
   Tr,
   Th,
   Td,
+  Tooltip,
+  Popover,
+  PopoverTrigger,
+  PopoverBody,
+  PopoverContent,
+  PopoverArrow,
+  PopoverCloseButton,
 } from '@chakra-ui/react';
+import { ArrowForwardIcon } from '@chakra-ui/icons';
+
+const { hasOwnProperty } = Object.prototype;
 
 function parcelNumberToLotNumber(parcelNumber) {
   return Number(parcelNumber.slice(-5, -1));
@@ -89,8 +101,100 @@ function OptionalRow({ label, data }) {
   );
 }
 
-function OptionalDate({ label, date }) {
-  return <OptionalRow label={label} data={formatDateStr(date)} />;
+const dateFieldOrder = {
+  processed_date: 1,
+  prescreen_completed_date: 2,
+  under_review_date: 3,
+  review_started_including: 4,
+  review_started_date_excluding: 5,
+  collect_permit_fees_date: 6,
+  pending_issuance_date: 7,
+  issue_permit_date: 8,
+  final_date: 9,
+};
+
+const dateFieldLabel = {
+  processed_date: 'Processed',
+  prescreen_completed_date: 'Prescreen',
+  under_review_date: 'Under review',
+  review_started_including: 'Review started',
+  review_started_date_excluding: 'Review started',
+  collect_permit_fees_date: 'Collect fees',
+  pending_issuance_date: 'Pending issuance',
+  issue_permit_date: 'Issued',
+  final_date: 'Done',
+};
+
+function getLatestDateField(permit) {
+  let dateFields = Object.entries(permit).filter(([name]) => {
+    return hasOwnProperty.call(dateFieldOrder, name);
+  });
+  dateFields = dateFields.sort(([nameA, a], [nameB, b]) => {
+    return (
+      new Date(b).getTime() +
+      dateFieldOrder[nameB] -
+      (new Date(a).getTime() + dateFieldOrder[nameA])
+    );
+  });
+  const latestDateField = dateFields[0];
+  if (latestDateField == null) {
+    return null;
+  }
+  return {
+    name: latestDateField[0],
+    value: latestDateField[1],
+  };
+}
+
+function Over({ label, children }) {
+  const userCanHover = window.matchMedia('(hover: hover)').matches;
+  if (userCanHover) {
+    return <Tooltip label={label}>{children}</Tooltip>;
+  }
+  return (
+    <Popover>
+      <PopoverTrigger>{children}</PopoverTrigger>
+      <PopoverContent>
+        <PopoverArrow />
+        <PopoverCloseButton />
+        <PopoverBody>{label}</PopoverBody>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function PermitTimeline({ permit }) {
+  const latestDateField = getLatestDateField(permit);
+  if (latestDateField == null) {
+    return null;
+  }
+  return (
+    <Tr>
+      <Td colSpan={2}>
+        {Object.entries(dateFieldLabel)
+          .filter(([fieldName]) => {
+            if (hasOwnProperty.call(permit, fieldName)) {
+              return true;
+            }
+            return (
+              dateFieldOrder[fieldName] > dateFieldOrder[latestDateField.name]
+            );
+          })
+          .map(([fieldName, label], index) => {
+            const color =
+              latestDateField?.name === fieldName ? 'green' : 'gray';
+            return (
+              <Fragment key={fieldName}>
+                {index === 0 ? null : <ArrowForwardIcon />}
+                <Over label={formatDateStr(permit[fieldName])}>
+                  <Badge colorScheme={color}>{label}</Badge>
+                </Over>
+              </Fragment>
+            );
+          })}
+      </Td>
+    </Tr>
+  );
 }
 
 function Permits({ data }) {
@@ -103,19 +207,23 @@ function Permits({ data }) {
       >
         <h2>
           <AccordionButton>
-            <Box as="span" flex="1" textAlign="left">
+            <Box flex="1" textAlign="left">
               {permit.permit_number}
             </Box>
-            <SmartColoredBadge
-              label={permit.application_type}
-              colorBag={colorBag}
-            />
+            <Flex gap={2}>
+              <SmartColoredBadge label={permit.worktype} colorBag={colorBag} />
+              <SmartColoredBadge
+                label={permit.application_type}
+                colorBag={colorBag}
+              />
+            </Flex>
             <AccordionIcon />
           </AccordionButton>
         </h2>
         <AccordionPanel pb={4}>
           <Table variant="simple">
             <Tbody>
+              <PermitTimeline permit={permit} />
               <OptionalRow
                 label="Application type"
                 data={permit.application_type}
@@ -145,53 +253,10 @@ function Permits({ data }) {
                 label="Property owner name"
                 data={permit.property_owner_name}
               />
-
-              <OptionalDate
-                label="Processed date"
-                date={permit.processed_date}
-              />
-              <OptionalDate
-                label="Prescreen completed date"
-                date={permit.prescreen_completed_date}
-              />
-              <OptionalDate
-                label="Under review date"
-                date={permit.under_review_date}
-              />
-
-              <OptionalDate
-                label="Review started date including"
-                date={permit.review_started_including}
-              />
-              <OptionalDate
-                label="Review started date excluding"
-                date={permit.review_started_date_excluding}
-              />
-              <OptionalDate
-                label="Collect permit fees date"
-                date={permit.collect_permit_fees_date}
-              />
-              <OptionalDate
-                label="Pending issuance date"
-                date={permit.pending_issuance_date}
-              />
-
-              <OptionalDate
-                label="Issue permit date"
-                date={permit.issue_permit_date}
-              />
-              <OptionalDate
-                label="PDOX batch date"
-                date={permit.pdoxbatch_date}
-              />
-
-              <OptionalDate label="Final date" date={permit.final_date} />
-              <OptionalDate label="COO date" date={permit.coo_date} />
-
-              <Tr>
-                <Th>Debug</Th>
-                <Td>{JSON.stringify(permit)}</Td>
-              </Tr>
+              {/* <Tr> */}
+              {/*   <Th>Debug</Th> */}
+              {/*   <Td>{JSON.stringify(permit)}</Td> */}
+              {/* </Tr> */}
             </Tbody>
           </Table>
         </AccordionPanel>
