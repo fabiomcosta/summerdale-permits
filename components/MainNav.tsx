@@ -15,7 +15,7 @@ import {
   useBreakpointValue,
   Container,
 } from '@chakra-ui/react';
-import { HamburgerIcon } from '@chakra-ui/icons';
+import { HamburgerIcon, ExternalLinkIcon } from '@chakra-ui/icons';
 
 interface NavItem {
   label: string;
@@ -25,9 +25,12 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { label: 'Home', href: '/' },
   // TODO: Add resources page
-  { label: 'Resources', href: '#' },
+  // { label: "Resources", href: "#" },
   //  TODO: Add google form for feedback
-  { label: 'Got feedback or ideas?', href: '#' },
+  {
+    label: 'Got feedback or ideas?',
+    href: 'https://forms.gle/Dgb9EShTSyrJiUWt6',
+  },
 ];
 
 const Nav: React.FC = () => {
@@ -56,7 +59,7 @@ const Nav: React.FC = () => {
   const NavLinks = NAV_ITEMS.map((item, index) => {
     const getTextColor = () => {
       if (activeIndex === index) {
-        return '#00DC82';
+        return 'teal.400';
       } else if (hasScrolled || isMobile) {
         return 'chakra-text-color';
       } else {
@@ -79,7 +82,8 @@ const Nav: React.FC = () => {
         }}
         onClick={() => handleItemClick(index)}
       >
-        {item.label}
+        {item.label}{' '}
+        {item.href.includes('https') && <ExternalLinkIcon mx="2px" />}
       </Box>
     );
   });

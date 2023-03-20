@@ -65,35 +65,33 @@ function ResultsTable({ data }) {
   );
   return (
     <Card variant={'outline'}>
-      <CardBody>
-        <TableContainer>
-          <Table variant="simple">
-            <Thead>{headerElements}</Thead>
-            <Tfoot>{headerElements}</Tfoot>
-            <Tbody>
-              {data.map((item) => {
-                return (
-                  <Tr key={item.number}>
-                    <Td>{item.number}</Td>
-                    <Td>{item.address}</Td>
-                    <Td>
-                      <SmartColoredBadge
-                        label={getLotStatus(item)}
-                        colorBag={colorBag}
-                      />
-                    </Td>
-                    <Td>
-                      <Link href={`/lot/${item.id}`}>
-                        <Button colorScheme="blue">Details</Button>
-                      </Link>
-                    </Td>
-                  </Tr>
-                );
-              })}
-            </Tbody>
-          </Table>
-        </TableContainer>
-      </CardBody>
+      <TableContainer>
+        <Table variant="simple">
+          <Thead>{headerElements}</Thead>
+          <Tfoot>{headerElements}</Tfoot>
+          <Tbody>
+            {data.map((item) => {
+              return (
+                <Tr key={item.number}>
+                  <Td>{item.number}</Td>
+                  <Td>{item.address}</Td>
+                  <Td>
+                    <SmartColoredBadge
+                      label={getLotStatus(item)}
+                      colorBag={colorBag}
+                    />
+                  </Td>
+                  <Td>
+                    <Link href={`/lot/${item.id}`}>
+                      <Button colorScheme="teal">Details</Button>
+                    </Link>
+                  </Td>
+                </Tr>
+              );
+            })}
+          </Tbody>
+        </Table>
+      </TableContainer>
     </Card>
   );
 }
