@@ -1,9 +1,8 @@
 // --- React/Nextjs
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import Image from 'next/image';
 import Head from 'next/head';
 import Link from 'next/link';
-
-// TODO: Change to MUI
 
 // --- Libs
 import {
@@ -20,7 +19,6 @@ import {
   Th,
   Td,
   TableContainer,
-  CardBody,
   Card,
   Stack,
   InputGroup,
@@ -29,6 +27,7 @@ import {
   InputRightElement,
   Text,
   Kbd,
+  useColorModeValue,
 } from '@chakra-ui/react';
 import { SearchIcon } from '@chakra-ui/icons';
 import {
@@ -66,35 +65,33 @@ function ResultsTable({ data }) {
   );
   return (
     <Card variant={'outline'}>
-      <CardBody>
-        <TableContainer>
-          <Table variant="simple">
-            <Thead>{headerElements}</Thead>
-            <Tfoot>{headerElements}</Tfoot>
-            <Tbody>
-              {data.map((item) => {
-                return (
-                  <Tr key={item.number}>
-                    <Td>{item.number}</Td>
-                    <Td>{item.address}</Td>
-                    <Td>
-                      <SmartColoredBadge
-                        label={getLotStatus(item)}
-                        colorBag={colorBag}
-                      />
-                    </Td>
-                    <Td>
-                      <Link href={`/lot/${item.id}`}>
-                        <Button colorScheme="blue">Details</Button>
-                      </Link>
-                    </Td>
-                  </Tr>
-                );
-              })}
-            </Tbody>
-          </Table>
-        </TableContainer>
-      </CardBody>
+      <TableContainer>
+        <Table variant="simple">
+          <Thead>{headerElements}</Thead>
+          <Tfoot>{headerElements}</Tfoot>
+          <Tbody>
+            {data.map((item) => {
+              return (
+                <Tr key={item.number}>
+                  <Td>{item.number}</Td>
+                  <Td>{item.address}</Td>
+                  <Td>
+                    <SmartColoredBadge
+                      label={getLotStatus(item)}
+                      colorBag={colorBag}
+                    />
+                  </Td>
+                  <Td>
+                    <Link href={`/lot/${item.id}`}>
+                      <Button colorScheme="teal">Details</Button>
+                    </Link>
+                  </Td>
+                </Tr>
+              );
+            })}
+          </Tbody>
+        </Table>
+      </TableContainer>
     </Card>
   );
 }
@@ -157,6 +154,27 @@ function useCityData(searchValue) {
 export default function Home() {
   const [searchValue, setSearchValue] = useState('');
   const [data, isLoading] = useCityData(searchValue);
+  const searchEl = useRef(null);
+
+  /**
+   * Handle the search key shortcut
+   */
+  const handleSearchKeyShortcut = useCallback((event) => {
+    if (
+      (event.metaKey && event.key === 'k') ||
+      (event.ctrlKey && event.key === 'k')
+    ) {
+      searchEl.current.focus();
+    }
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleSearchKeyShortcut);
+    return () => {
+      document.removeEventListener('keydown', handleSearchKeyShortcut);
+    };
+  }, [handleSearchKeyShortcut]);
+
   return (
     <>
       <Head>
@@ -175,17 +193,50 @@ export default function Home() {
           w={'full'}
           p={4}
           borderBottomWidth={1}
-          borderBottomColor={'gray.200'}
-          bg={'gray.900'}
+          borderBottomColor={'chakra-border'}
+          bg={useColorModeValue('teal.900', 'teal.200')}
+          className="hero"
           mb={12}
+          position="relative"
         >
-          <Box py={'16'}>
-            <Heading color={'white'} textAlign={'center'}>
-              Explore Status updates for Summerdale community
+          <Box
+            position={'absolute'}
+            top={0}
+            left={0}
+            height="full"
+            width={'full'}
+            opacity={0.1}
+          >
+            <Image
+              style={{ objectFit: 'cover' }}
+              sizes="(max-width: 768px) 100vw,
+              (max-width: 1200px) 50vw,
+              33vw"
+              fill
+              src="/images/hero-bg.jpg"
+              alt="Summerdale park sunset"
+            />
+          </Box>
+          <Box pt={'32'} pb="10">
+            <Heading
+              size={'2xl'}
+              color={'chakra-body-bg'}
+              textAlign={'center'}
+              mb="3"
+            >
+              👋 Hey there neighbor
             </Heading>
-            <Text size={'xl'} color={'gray.300'} textAlign={'center'}>
-              A status page to help Summerdale Park home owners stay up to date
-              with their homes.
+            <Text
+              fontSize={'xl'}
+              maxWidth="578px"
+              mx={'auto'}
+              color={'chakra-body-bg'}
+              opacity={0.8}
+              textAlign={'center'}
+            >
+              This page allows us to monitor the status of construction within
+              Summerdale Park and stay informed about any updates or changes in
+              the permit application process.
             </Text>
           </Box>
           <Stack
@@ -205,12 +256,13 @@ export default function Home() {
                 <SearchIcon color="gray.300" />
               </InputLeftElement>
               <Input
+                ref={searchEl}
                 value={searchValue}
                 onChange={(event) => {
                   setSearchValue(event.target.value);
                 }}
                 size="lg"
-                bg="white"
+                bg="chakra-body-bg"
                 type="tel"
                 placeholder="Search for a lot number"
               />
@@ -230,17 +282,6 @@ export default function Home() {
             )}
           </Container>
         </Box>
-      </Box>
-      <Box
-        as="footer"
-        w={'full'}
-        p={6}
-        borderTopWidth={1}
-        borderTopColor={'gray.200'}
-        bg={'gray.100'}
-        textAlign="center"
-      >
-        <Text>Created by Agnel Nieves and Bruno Albuquerque</Text>
       </Box>
     </>
   );
