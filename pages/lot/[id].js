@@ -3,7 +3,6 @@ import {
   useColorBag,
   SmartColoredBadge,
 } from '../../components/SmartColoredBadge';
-import { useRouter } from 'next/router';
 import {
   Box,
   Badge,
@@ -15,9 +14,12 @@ import {
   AccordionItem,
   AccordionButton,
   AccordionIcon,
+  Heading,
+  Text,
   AccordionPanel,
   Table,
   Tbody,
+  useColorMode,
   Tr,
   Th,
   Td,
@@ -205,7 +207,7 @@ function Permits({ data }) {
         key={permit.permit_number}
         borderTopWidth={index === 0 ? 0 : void 0}
       >
-        <h2>
+        <Heading>
           <AccordionButton>
             <Box flex="1" textAlign="left">
               {permit.permit_number}
@@ -219,7 +221,7 @@ function Permits({ data }) {
             </Flex>
             <AccordionIcon />
           </AccordionButton>
-        </h2>
+        </Heading>
         <AccordionPanel pb={4}>
           <Table variant="simple">
             <Tbody>
@@ -266,7 +268,9 @@ function Permits({ data }) {
   return (
     <>
       <div>
-        <strong>Permits:</strong>
+        <Heading mb={4} size={'sm'}>
+          Permits:{' '}
+        </Heading>
       </div>
       <Card variant={'outline'}>
         <Accordion allowMultiple>{permits}</Accordion>
@@ -276,10 +280,13 @@ function Permits({ data }) {
 }
 
 export default function Lot({ id }) {
-  const router = useRouter();
   const [data, isLoading] = useLotData(id);
+  const [lotNumber, setLotNumber] = useState(null);
+  const { colorMode } = useColorMode();
 
-  const lotNumber = parcelNumberToLotNumber(router.query.id);
+  useEffect(() => {
+    setLotNumber(parcelNumberToLotNumber(id));
+  }, [setLotNumber, id]);
 
   if (isLoading && data.length === 0) {
     return <CircularProgress isIndeterminate />;
@@ -291,16 +298,44 @@ export default function Lot({ id }) {
   )?.permit_address;
 
   return (
-    <Box as="section" w={'full'} p={4}>
+    <Box as="section" w={'full'}>
+      <Box
+        as="header"
+        w={'full'}
+        p={4}
+        borderBottomWidth={1}
+        borderBottomColor={'chakra-border'}
+        bg={colorMode === 'light' ? 'teal.900' : 'teal.200'}
+        className="hero"
+        mb={12}
+        position="relative"
+      >
+        <Box pt={'32'} pb="10">
+          <Heading
+            size={'2xl'}
+            color={'chakra-body-bg'}
+            textAlign={'center'}
+            mb="3"
+          >
+            <strong>LOT #:</strong> {lotNumber}
+          </Heading>
+          <Text
+            fontSize={'xl'}
+            maxWidth="578px"
+            mx={'auto'}
+            color={'chakra-body-bg'}
+            opacity={0.8}
+            textAlign={'center'}
+          >
+            {address && (
+              <>
+                <strong>Address:</strong> {address}
+              </>
+            )}
+          </Text>
+        </Box>
+      </Box>
       <Container maxW="container.xl">
-        <div>
-          <strong>LOT #:</strong> {lotNumber}
-        </div>
-        {address != null ? (
-          <div>
-            <strong>Address:</strong> {address}
-          </div>
-        ) : null}
         <Permits data={data} />
       </Container>
     </Box>
