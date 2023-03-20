@@ -42,26 +42,6 @@ function parcelNumberToLotNumber(parcelNumber) {
   return Number(parcelNumber.slice(-5, -1));
 }
 
-// function isDateStr(value) {
-//   if (typeof value != 'string') {
-//     return false;
-//   }
-//   return (
-//     Number.isFinite(new Date(value).getTime()) &&
-//     /\d+-\d+-\d+T\d+:\d+:[\d.]+/.test(value)
-//   );
-// }
-
-// function getLatestDateField(permit) {
-//   let dateFields = Object.entries(permit).filter(([, value]) => {
-//     return isDateStr(value);
-//   });
-//   dateFields = dateFields.sort(([, a], [, b]) => {
-//     return new Date(b).getTime() - new Date(a).getTime();
-//   });
-//   return dateFields[0];
-// }
-
 function getLotStatus(buildingPermit) {
   // when there are more then one Building Permit it's still confusing which
   // one is the one that we should be using, so we'll avoid classifying them.
@@ -70,8 +50,6 @@ function getLotStatus(buildingPermit) {
     if (permit.coo_date != null) {
       return 'Ready to move';
     }
-    // const [name] = getLatestDateField(permit);
-    // return name;
   }
   return 'Other';
 }
