@@ -30,6 +30,7 @@ import {
   PopoverContent,
   PopoverArrow,
   PopoverCloseButton,
+  useMediaQuery,
 } from '@chakra-ui/react';
 import { ArrowForwardIcon } from '@chakra-ui/icons';
 
@@ -149,7 +150,10 @@ function getLatestDateField(permit) {
 }
 
 function Over({ label, children }) {
-  const userCanHover = window.matchMedia('(hover: hover)').matches;
+  const [userCanHover] = useMediaQuery('(hover: hover)');
+  if (label == null) {
+    return children;
+  }
   if (userCanHover) {
     return <Tooltip label={label}>{children}</Tooltip>;
   }
@@ -185,11 +189,19 @@ function PermitTimeline({ permit }) {
           .map(([fieldName, label], index) => {
             const color =
               latestDateField?.name === fieldName ? 'green' : 'gray';
+            const dateFieldValue = permit[fieldName];
             return (
               <Fragment key={fieldName}>
                 {index === 0 ? null : <ArrowForwardIcon />}
-                <Over label={formatDateStr(permit[fieldName])}>
-                  <Badge colorScheme={color}>{label}</Badge>
+                <Over label={formatDateStr(dateFieldValue)}>
+                  <Badge
+                    sx={
+                      dateFieldValue ? { cursor: 'pointer' } : { opacity: 0.4 }
+                    }
+                    colorScheme={color}
+                  >
+                    {label}
+                  </Badge>
                 </Over>
               </Fragment>
             );
