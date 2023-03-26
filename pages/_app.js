@@ -47,7 +47,7 @@ function App({ Component, pageProps }) {
             textAlign="center"
           >
             <Text>
-              Created by Agnel Nieves, Fabio M Costa and Bruno Albuquerque
+              Created by Agnel Nieves, Fabio Costa and Bruno Albuquerque
             </Text>
           </Box>
         </motion.div>
