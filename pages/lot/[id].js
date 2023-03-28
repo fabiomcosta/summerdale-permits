@@ -104,39 +104,27 @@ function OptionalRow({ label, data }) {
   );
 }
 
-const dateFieldOrder = {
-  processed_date: 1,
-  prescreen_completed_date: 2,
-  under_review_date: 3,
-  review_started_including: 4,
-  review_started_date_excluding: 5,
-  collect_permit_fees_date: 6,
-  pending_issuance_date: 7,
-  issue_permit_date: 8,
-  final_date: 9,
-};
-
-const dateFieldLabel = {
-  processed_date: 'Processed',
-  prescreen_completed_date: 'Prescreen',
-  under_review_date: 'Under review',
-  review_started_including: 'Review started',
-  review_started_date_excluding: 'Review started',
-  collect_permit_fees_date: 'Collect fees',
-  pending_issuance_date: 'Pending issuance',
-  issue_permit_date: 'Issued',
-  final_date: 'Done',
+const DATE_FIELDS = {
+  processed_date: { order: 1, label: 'Processed' },
+  prescreen_completed_date: { order: 2, label: 'Prescreen' },
+  under_review_date: { order: 3, label: 'Under review' },
+  review_started_including: { order: 4, label: 'Review started' },
+  review_started_date_excluding: { order: 4, label: 'Review started' },
+  collect_permit_fees_date: { order: 5, label: 'Collect fees' },
+  pending_issuance_date: { order: 6, label: 'Pending issuance' },
+  issue_permit_date: { order: 7, label: 'Issued' },
+  final_date: { order: 8, label: 'Done' },
 };
 
 function getLatestDateField(permit) {
   let dateFields = Object.entries(permit).filter(([name]) => {
-    return hasOwnProperty.call(dateFieldOrder, name);
+    return hasOwnProperty.call(DATE_FIELDS, name);
   });
   dateFields = dateFields.sort(([nameA, a], [nameB, b]) => {
     return (
       new Date(b).getTime() +
-      dateFieldOrder[nameB] -
-      (new Date(a).getTime() + dateFieldOrder[nameA])
+      DATE_FIELDS[nameB].order -
+      (new Date(a).getTime() + DATE_FIELDS[nameA].order)
     );
   });
   const latestDateField = dateFields[0];
@@ -177,16 +165,27 @@ function PermitTimeline({ permit }) {
   return (
     <Tr>
       <Td colSpan={2}>
-        {Object.entries(dateFieldLabel)
-          .filter(([fieldName]) => {
+        {Object.entries(DATE_FIELDS)
+          .filter(([fieldName, { order }]) => {
             if (hasOwnProperty.call(permit, fieldName)) {
               return true;
             }
-            return (
-              dateFieldOrder[fieldName] > dateFieldOrder[latestDateField.name]
-            );
+            // This lets us keep the future date fields so that users
+            // can see what is coming up.
+            // If the order of the current field is smaller than the last field
+            // and it's not present in the permit that means this particular
+            // permit doesn't have the "step" that the date field represents
+            // so we filter the date field out.
+            return order > DATE_FIELDS[latestDateField.name].order;
           })
-          .map(([fieldName, label], index) => {
+          // At this point this is mostly to remove review_started_date_excluding
+          // in case there is already a review_started_including field that
+          // we'll be showing. That way we don't show `Review started` twice.
+          .filter(([, { order }], index, dateFields) => {
+            const previousFieldOrder = dateFields[index - 1]?.[1].order;
+            return order !== previousFieldOrder;
+          })
+          .map(([fieldName, { label }], index) => {
             const color =
               latestDateField?.name === fieldName ? 'green' : 'gray';
             const dateFieldValue = permit[fieldName];
