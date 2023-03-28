@@ -137,6 +137,9 @@ function getLatestDateField(permit) {
 }
 
 function Over({ label, children }) {
+  if (label == null) {
+    return children;
+  }
   const userCanHover = window.matchMedia('(hover: hover)').matches;
   if (userCanHover) {
     return <Tooltip label={label}>{children}</Tooltip>;
