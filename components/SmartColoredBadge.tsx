@@ -21,7 +21,7 @@ const availableColors = [
 ];
 
 type ColorBag = {
-  reserveColorForId: (id: string) => string;
+  reserveColorForId: (_id: string) => string;
 };
 
 function createColorBag(): ColorBag {
