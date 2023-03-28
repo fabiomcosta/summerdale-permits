@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, Fragment } from 'react';
+import { useEffect, useState, Fragment } from 'react';
 import {
   useColorBag,
   SmartColoredBadge,
@@ -33,12 +33,13 @@ import {
   useMediaQuery,
 } from '@chakra-ui/react';
 import { ArrowForwardIcon } from '@chakra-ui/icons';
+import {
+  parcelNumberToLotNumber,
+  fetchPermits,
+  usePermitData,
+} from '../../utils/api';
 
 const { hasOwnProperty } = Object.prototype;
-
-function parcelNumberToLotNumber(parcelNumber) {
-  return Number(parcelNumber.slice(-5, -1));
-}
 
 function formatDateStr(dateStr) {
   if (dateStr == null) {
@@ -59,37 +60,6 @@ function formatCurrencyAmount(amount) {
     style: 'currency',
     currency: 'USD',
   }).format(amount);
-}
-
-function useLotData(parcelNumber) {
-  const [data, setData] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const getData = useCallback(async () => {
-    try {
-      // docs: https://dev.socrata.com/foundry/data.cityoforlando.net/5pzm-dn5w
-      const apiUrl = `https://data.cityoforlando.net/resource/5pzm-dn5w.json?parcel_number=${parcelNumber}`;
-      const response = await fetch(apiUrl);
-      let data = await response.json();
-      data = data.sort(
-        (a, b) =>
-          new Date(a.processed_date).getTime() -
-          new Date(b.processed_date).getTime()
-      );
-      console.log(data);
-      setData(data);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [setData, parcelNumber]);
-
-  useEffect(() => {
-    getData();
-  }, [getData]);
-
-  return [data, isLoading];
 }
 
 function OptionalRow({ label, data }) {
@@ -291,13 +261,8 @@ function Permits({ data }) {
 }
 
 export default function Lot({ id }) {
-  const [data, isLoading] = useLotData(id);
-  const [lotNumber, setLotNumber] = useState(null);
+  const [data, isLoading] = usePermitData({ parcel_number: id });
   const { colorMode } = useColorMode();
-
-  useEffect(() => {
-    setLotNumber(parcelNumberToLotNumber(id));
-  }, [setLotNumber, id]);
 
   if (isLoading && data.length === 0) {
     return <CircularProgress isIndeterminate />;
@@ -307,6 +272,8 @@ export default function Lot({ id }) {
   const address = data.find((permit) =>
     Boolean(permit.permit_address)
   )?.permit_address;
+
+  const lotNumber = parcelNumberToLotNumber(id);
 
   return (
     <Box as="section" w={'full'}>
@@ -354,10 +321,11 @@ export default function Lot({ id }) {
 }
 
 export async function getStaticPaths() {
-  const apiUrl = `https://data.cityoforlando.net/resource/5pzm-dn5w.json?application_type=Building Permit&worktype=New`;
   try {
-    const response = await fetch(apiUrl);
-    const data = await response.json();
+    const data = await fetchPermits({
+      application_type: 'Building Permit',
+      worktype: 'New',
+    });
     return {
       paths: Object.values(
         data.reduce((acc, permit) => {

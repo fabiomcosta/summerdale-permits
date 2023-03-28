@@ -1,5 +1,5 @@
 // --- React/Nextjs
-import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -34,12 +34,7 @@ import {
   useColorBag,
   SmartColoredBadge,
 } from '../components/SmartColoredBadge';
-
-const { hasOwnProperty } = Object.prototype;
-
-function parcelNumberToLotNumber(parcelNumber) {
-  return Number(parcelNumber.slice(-5, -1));
-}
+import { useLotData } from '../utils/api';
 
 function getLotStatus(buildingPermit) {
   // when there are more then one Building Permit it's still confusing which
@@ -96,64 +91,9 @@ function ResultsTable({ data }) {
   );
 }
 
-function useCityData(searchValue) {
-  const [data, setData] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const getData = useCallback(async () => {
-    try {
-      // docs: https://dev.socrata.com/foundry/data.cityoforlando.net/5pzm-dn5w
-      const apiUrl = `https://data.cityoforlando.net/resource/5pzm-dn5w.json?application_type=Building Permit&worktype=New`;
-      const response = await fetch(apiUrl);
-      const data = await response.json();
-      console.log(data);
-      setData(data);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [setData]);
-
-  useEffect(() => {
-    getData();
-  }, [getData]);
-
-  const lotData = useMemo(() => {
-    const lots = data.reduce((acc, permit) => {
-      const lotNumber = parcelNumberToLotNumber(permit.parcel_number);
-      if (hasOwnProperty.call(acc, lotNumber)) {
-        acc[lotNumber].permits.push(permit);
-      } else {
-        const address = permit.permit_address;
-        acc[lotNumber] = {
-          // Haha... this makes the search logic easier
-          __searchIndex: `${lotNumber} ${address}`.toLowerCase(),
-          id: permit.parcel_number,
-          number: lotNumber,
-          address,
-          // we don't actually need this
-          permits: [permit],
-        };
-      }
-      return acc;
-    }, {});
-    return Object.values(lots);
-  }, [data]);
-
-  console.log(lotData);
-
-  const searchTokens = searchValue.toLowerCase().split(' ');
-  const filteredLotData = lotData.filter((lot) => {
-    return searchTokens.some((token) => lot.__searchIndex.includes(token));
-  });
-
-  return [filteredLotData, isLoading];
-}
-
 export default function Home() {
   const [searchValue, setSearchValue] = useState('');
-  const [data, isLoading] = useCityData(searchValue);
+  const [data, isLoading] = useLotData(searchValue);
   const searchEl = useRef(null);
 
   /**
