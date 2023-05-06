@@ -1,4 +1,4 @@
-import { useEffect, useState, Fragment } from 'react';
+import { Fragment } from 'react';
 import {
   useColorBag,
   SmartColoredBadge,
@@ -181,6 +181,8 @@ function PermitTimeline({ permit }) {
 }
 
 function Permits({ data }) {
+  const isDebugEnabled =
+    new URLSearchParams(location.search).get('debug') != null;
   const colorBag = useColorBag();
   const permits = data.map((permit, index) => {
     return (
@@ -236,10 +238,12 @@ function Permits({ data }) {
                 label="Property owner name"
                 data={permit.property_owner_name}
               />
-              {/* <Tr> */}
-              {/*   <Th>Debug</Th> */}
-              {/*   <Td>{JSON.stringify(permit)}</Td> */}
-              {/* </Tr> */}
+              {isDebugEnabled ? (
+                <Tr>
+                  <Th>Debug</Th>
+                  <Td>{JSON.stringify(permit)}</Td>
+                </Tr>
+              ) : null}
             </Tbody>
           </Table>
         </AccordionPanel>
