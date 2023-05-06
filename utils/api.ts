@@ -40,11 +40,13 @@ type Permit = {
   coo_date?: string;
 };
 
+type ApplicationType = 'building' | 'plumbing' | 'electrical' | 'mechanical';
+
 type LotData = {
   id: string; // same as parcel_number
   number: number; // lot number, extracted from the parcel_number
   address: string; // same as permit_address;
-  permits: Array<Permit>;
+  permits: { [_ in ApplicationType]?: Permit };
   __searchIndex: string;
 };
 
@@ -53,6 +55,17 @@ type PermitParams = Partial<{ [_ in keyof Permit]: string | number }>;
 const BLOCKLIST_BY_PARCEL_NUMBER = {
   312431779300120: 1, // lot 12
 };
+
+function toSnakeCase(str: string): string {
+  return str.toLowerCase().replaceAll(' ', '_');
+}
+
+function compressApplicationType(applicationType: string): ApplicationType {
+  return toSnakeCase(applicationType).replace(
+    /_permit$/,
+    ''
+  ) as ApplicationType;
+}
 
 export function parcelNumberToLotNumber(parcelNumber: string): number {
   return Number(parcelNumber.slice(-5, -1));
@@ -93,6 +106,7 @@ export function usePermitData(params: PermitParams): [Array<Permit>, boolean] {
     } finally {
       setIsLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setData]);
 
   useEffect(() => {
@@ -104,15 +118,24 @@ export function usePermitData(params: PermitParams): [Array<Permit>, boolean] {
 
 export function useLotData(searchValue: string): [Array<LotData>, boolean] {
   const [permitData, isLoading] = usePermitData({
-    application_type: 'Building Permit',
+    // application_type: 'Building Permit',
     worktype: 'New',
   });
 
   const lotData = useMemo(() => {
     const lots = permitData.reduce((acc, permit) => {
       const lotNumber = parcelNumberToLotNumber(permit.parcel_number);
+      const applicationType = compressApplicationType(permit.application_type);
       if (hasOwnProperty.call(acc, lotNumber)) {
-        acc[lotNumber].permits.push(permit);
+        const currentPermit = acc[lotNumber].permits[applicationType];
+        // We are assuming that the oldest permit is the source of truth
+        if (
+          !currentPermit ||
+          new Date(permit.processed_date).getTime() <
+            new Date(currentPermit.processed_date).getTime()
+        ) {
+          acc[lotNumber].permits[applicationType] = permit;
+        }
       } else {
         const address = permit.permit_address;
         acc[lotNumber] = {
@@ -121,11 +144,12 @@ export function useLotData(searchValue: string): [Array<LotData>, boolean] {
           id: permit.parcel_number,
           number: lotNumber,
           address,
-          permits: [permit],
+          permits: { [applicationType]: permit },
         };
       }
       return acc;
     }, {} as { [parcel_number: string]: LotData });
+
     return Object.values(lots);
   }, [permitData]);
 
