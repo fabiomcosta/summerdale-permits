@@ -13,8 +13,6 @@ const availableColors = [
   'cyan',
   'purple',
   'pink',
-  'linkedin',
-  'facebook',
   'whatsapp',
   'twitter',
   'telegram',

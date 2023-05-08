@@ -39,13 +39,20 @@ import { useLotData } from '../utils/api';
 function getLotStatus(buildingPermit) {
   // when there are more then one Building Permit it's still confusing which
   // one is the one that we should be using, so we'll avoid classifying them.
-  if (buildingPermit.permits.length === 1) {
-    const permit = buildingPermit.permits[0];
-    if (permit.coo_date != null) {
-      return 'Ready to move';
-    }
+  const { permits } = buildingPermit;
+  if (permits.building.coo_date != null) {
+    return 'Ready to move';
   }
-  return 'Other';
+  // If any of the other permits has a final_date, historical data has shown
+  // data coo is really close, likley in a week.
+  if (
+    ['electrical', 'mechanical', 'plumbing'].some(
+      (permitType) => permits[permitType]?.final_date != null
+    )
+  ) {
+    return 'Ready soon';
+  }
+  return 'In construction';
 }
 
 function ResultsTable({ data }) {
